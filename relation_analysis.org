@@ -1,0 +1,74 @@
+
+
+| Relation                     | Properties | Observations |
+| /r/Antonym                   | Symmetric  |              |
+| /r/AtLocation                |            |              |
+| /r/CapableOf                 |            |              |
+| /r/Causes                    |            |              |
+| /r/CausesDesire              |            |              |
+| /r/CreatedBy                 |            |              |
+| /r/DefinedAs                 |            |              |
+| /r/DerivedFrom               |            |              |
+| /r/Desires                   |            |              |
+| /r/DistinctFrom              | Symmetric  |              |
+| /r/EtymologicallyDerivedFrom |            |              |
+| /r/EtymologicallyRelatedTo   | Symmetric  |              |
+| /r/FormOf                    |            |              |
+| /r/HasA                      |            |              |
+| /r/HasContext                |            |              |
+| /r/HasFirstSubevent          |            |              |
+| /r/HasLastSubevent           |            |              |
+| /r/HasPrerequisite           |            |              |
+| /r/HasProperty               |            |              |
+| /r/HasSubevent               |            |              |
+| /r/IsA                       |            |              |
+| /r/LocatedNear               | Symmetric  |              |
+| /r/MadeOf                    |            |              |
+| /r/MannerOf                  |            |              |
+| /r/MotivatedByGoal           |            |              |
+| /r/NotCapableOf              |            |              |
+| /r/NotDesires                |            |              |
+| /r/NotHasProperty            |            |              |
+| /r/PartOf                    |            |              |
+| /r/ReceivesAction            |            |              |
+| /r/RelatedTo                 | Symmetric  |              |
+| /r/SimilarTo                 | Symmetric  |              |
+| /r/SymbolOf                  |            |              |
+| /r/Synonym                   | Symmetric  |              |
+| /r/UsedFor                   |            |              |
+
+1624224 /r/RelatedTo
+ 367962 /r/FormOf
+ 314191 /r/DerivedFrom
+ 219740 /r/HasContext
+ 196979 /r/Synonym
+ 169249 /r/IsA
+  30732 /r/EtymologicallyRelatedTo
+  28912 /r/SimilarTo
+  23318 /r/AtLocation
+  20884 /r/UsedFor
+  18510 /r/Antonym
+  12478 /r/MannerOf
+  11782 /r/PartOf
+  11565 /r/CapableOf
+  10181 /r/HasSubevent
+   8109 /r/HasPrerequisite
+   7148 /r/Causes
+   3666 /r/MotivatedByGoal
+   3470 /r/HasProperty
+   3299 /r/DistinctFrom
+   2523 /r/HasA
+   2013 /r/CausesDesire
+   1677 /r/Desires
+   1567 /r/NotDesires
+   1256 /r/HasFirstSubevent
+   1184 /r/HasLastSubevent
+    761 /r/ReceivesAction
+    459 /r/MadeOf
+    225 /r/CreatedBy
+    166 /r/NotHasProperty
+    130 /r/NotCapableOf
+    129 /r/DefinedAs
+     69 /r/EtymologicallyDerivedFrom
+     48 /r/LocatedNear
+      3 /r/SymbolOf
