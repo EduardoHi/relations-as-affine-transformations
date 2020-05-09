@@ -127,7 +127,36 @@ def visualize_tsne(words_strs, words_vecs):
     annotate_words(t_words_strs, t_2d)
 
 
-def predict(trans, words_dataset, embeds_dataset, word_vecs):
+def predict(trans, head_words, word_vecs):
+    head_embeddings = torch.tensor([w2vec(word_vecs, h) for h in head_words])
+    tail_words = []
+    for he in head_embeddings:
+        predicted_te = he + trans
+
+        predicted_tails = [
+            w
+            for (w, _score) in word_vecs.similar_by_vector(
+                predicted_te.detach().numpy()
+            )
+        ]
+        tail_words.append(predicted_tails)
+    return tail_words
+
+
+def test_predict(trans, words_dataset, word_vecs):
+    hws = words_dataset[:, 0]
+    tws = words_dataset[:, 1]
+    predictions = predict(trans, hws, word_vecs)
+
+    def f(pair):
+        tws_hat, true_tw = pair
+        if true_tw in tws_hat:
+            return true_tw
+        else:
+            return tws_hat[0]
+
+    return list(map(f, zip(predictions, tws)))
+
     word_predicted = []
     for (hw, tw), (he, te) in zip(words_dataset, embeds_dataset):
         te_hat = he + trans
@@ -187,7 +216,8 @@ def main():
     print("finished training", datetime.now().time(), file=sys.stderr)
 
     # predict against the whole dataset, not train and test splits
-    word_predicted = predict(trans, words_dataset, embeddings_dataset, word_vecs)
+    word_predicted = test_predict(trans, words_dataset, word_vecs)
+    print(word_predicted)
     word_ground_truth = [tw for _hw, tw in words_dataset]
 
     precision, recall, fscore, _support = precision_recall_fscore_support(
