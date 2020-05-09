@@ -137,7 +137,6 @@ def triplets_to_relation(triplets):
 if __name__ == "__main__":
     triplets = gen_triplets()
     r = triplets_to_relation(triplets)
-    print(r.name)
     # r.arity_stats()
     r.relation_to_csv()
 
