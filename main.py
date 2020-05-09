@@ -51,13 +51,13 @@ class Model:
     def __init__(self, word_vecs):
         self.wv = word_vecs
 
-        self.trans = torch.rand(200, requires_grad=True)
-        self.forward = lambda x: x + self.trans
-        # model = nn.Sequential(
-        #     # Linear Transformation + bias is equivalent to an Affine Transformation
-        #     nn.Linear(200, 200)
-        # )
-        # self.forward = model.forward
+        # self.trans = torch.rand(200, requires_grad=True)
+        # self.forward = lambda x: x + self.trans
+        self.model = nn.Sequential(
+            # Linear Transformation + bias is equivalent to an Affine Transformation
+            nn.Linear(200, 200)
+        )
+        self.forward = self.model.forward
 
     def train(self, words_train_set):
 
@@ -69,12 +69,12 @@ class Model:
         tails = embeddings_train_set[:, 1]
         losses = []
 
-        opt = optim.Adam([self.trans])
+        opt = optim.Adam(self.model.parameters())
         # criterion = torch.nn.L1Loss()
         criterion = torch.nn.MSELoss()
         # criterion = torch.nn.CosineEmbeddingLoss()
 
-        for epoch in range(5000):
+        for _epoch in range(5000):
             # a single epoch
             opt.zero_grad()
 
@@ -86,8 +86,8 @@ class Model:
             opt.step()
             losses.append(loss.data.cpu().item())
 
-        self.trans = self.trans.detach()
-        torch.save(self.trans, "trans.pt")
+        # self.trans = self.trans.detach()
+        # torch.save(self.trans, "trans.pt")
 
         plt.plot(losses)
 
