@@ -1,0 +1,225 @@
+\noindent
+%\noindent {\bf Overview}\\
+\noindent
+
+
+\section{Abstract}
+
+Word embeddings capture semantic relations as \emph{translation} between vectors.
+This project proposes and evaluates a method that given a relation and an embedding vector space,
+it learns a representation of such relation as an affine transformation.
+The learned transformation performs 5-18 points better than a simple translation
+which is what the analogy task usually performs.
+
+\section{Introduction}
+
+Extensive work shows that word embeddings can capture semantic and syntactic relations
+\cite{mikolov2013efficient} \cite{mikolov2013linguistic} \cite{levy2014linguistic}
+as \textit{vector offsets}.
+Specifically, such embeddings are usually evaluated in
+similarity tasks (distance between related words)
+and analogy tasks (complete the sentence: ``$\x$ is to $\y$, as $\z$ is to $\w$'')
+where the type of relation is not explicitly provided.
+For a human to answer, the relation
+needs to be infered and then applied it to the third argument \cite{levy2014linguistic}.
+In \cite{nayak2015learning} they propose a more specific task of
+predicting the hypernym of a given word.
+It can be seen as the task of completing the sentence ``\emph{x is a y}''.
+
+We propose a variation of this task that is generic over the type of relation.
+For example: ``\emph{a $\x$ can $\y$}'' or ``\emph{a is $\x$ cause of $\y$}''.
+This task is challenging in at least two different ways with respect to the analogy task:
+1) word relations need not be \textit{functions}: there might be two such instances of $b$ that
+hold. e.g. \textit{a bee can sting} and \textit{a bee can fly}; and
+2) polysemy in an argument e.g. \textit{a dog can bark}, bark(make a loud noise) and bark(part of plant).
+This are pitfalls of word embeddings in general, but the analogy task alleviates it
+by possibly dissambiguating with the third argument $c$.
+
+A dataset extracted from \texttt{ConceptNet} is used to find answers to
+such task with vector algebra, akin to work in the analogy task.
+This can be described as a way to represent the symbolic knowledge of concepts
+and edges into the word embeddings, where there's a correspondence between concept $\sim$ embedding,
+and edge $\sim$ affine transformation.
+
+\subsection{Novel Aspects}
+This new formulation of the task as searching a single affine transformation
+for all triplets of a relation over an embedding space is,to the best of my knowledge, novel.
+
+Both GloVe and word2vec approaches to this is through analogies that do
+not make the specific relation between terms explicit. This is a tradeoff between
+generality and interpretability.
+
+
+\section{Problem Definition}
+
+For concepts $c_h , c_t$
+with corresponding word representations $w_h , w_t$ $\in V : \mathbb{R}^d$ and a relationship
+between them $r$,
+we want to find a function $\bm{f_r} : \mathbb{R}^d \to \mathbb{R}^d$ such that:
+\begin{equation}
+    \bm{f_r}(w_h) \approx w_t \label{eq:1}
+\end{equation}
+This approximation has an underlying error because it is trying to model a relation as a function.
+Properties of $r$ such as symmetry/asymmetry, transitivity and reflexivity make this task hard.
+Additionally if $r$ is non-injective (such as is-a relationship) it can be harder to learn and
+possibly it's inverse relation might be easier, e.g. ``\textit{x is a hypernym of y}'' is
+harder to learn than its inverse ``\textit{x is a hyponym of y}.
+
+ConceptNet can be seen as a Set of triplets of the form $(r,c_h,c_t)$ that is a relation $r$
+with a concept that is the head $c_h$ followed by a tail concept $c_t$.
+
+\section{Technical Approach}
+
+With Equation \eqref{eq:1} as an objective, we now choose $\bm{f_r}$,
+since we want to capture \textit{geometric properties} of the underlying vector space of the embeddings,
+We will limit $\bm{f_r}$ to be either a translation \eqref{eq:2}, or an affine transformation  \eqref{eq:3}:
+\begin{align}
+    w_h + x &\approx w_t \label{eq:2} \\
+    Ww_h + b &\approx w_t \label{eq:3}
+\end{align}
+In the actual implementation, an affine transformation is equivalent to a single linear layer +
+a bias.
+During development I tried different architectures such as 2 tanh layers, and while it increased
+accuracy in some cases, it did not justified losing the interpretability of the affine transformations.
+
+This method is independent of the embedding except for the dimensions of the Affine transformation matrix and translation vector,
+therefore it is another way to intrisically measure the semantic information captured in such embeddings.
+Work \cite{retrofitting} has been done in exploring how to \textit{retrofit} simbolic knowledge of
+relations back into the word embeddings, one such example being ConceptNet NumberBatch\cite{numberBatch}
+that consolidates the word embeddings from multiple sources into one and injects knowledge
+of the ConceptNet graph to increase performance.
+
+Other influential approaches like \texttt{TransE}, \cite{transE} and
+\texttt{TransH} \cite{transH}
+Search to minimize equations similar to \eqref{eq:2} defined as a loss,
+but they do it directly in the embeddings.
+In contrast to our approach that takes existing embeddings and searches for such a transformation.
+
+During training, we want to minimize the mean square loss of equation \eqref{eq:1}.
+And during test, we query our model by asking for
+the most similar vector $\widehat{w_t}$ in the embedding space $V$, $v$ that corresponds
+to our predicted concept $\widehat{c_t}$.
+\begin{equation}
+    \argmax_{w_t \in V} ( f_r(w_h) )
+\end{equation}
+There is an alternate formulation as a multi-classification problem not explored in this report
+where given a pair of concepts the model assigns one relation to it.
+
+
+\section{Evaluation}
+\subsection{Rationale}
+Our main question is if there exists such transformation that satisfies \eqref{eq:1} reasonably well.
+By reasonably well we expect the transformation to be able to predict the corresponding $c_t$
+for a concept that it has not seen, and that it performs better than simple translation (the baseline).
+Some other interesting aspects are how the \emph{relational properties} of the dataset e.g.
+symmetry and arity of the relation affects the performance of the corresponding transformation.
+
+\subsection{Experimental Settings}
+The data for the triplets was extracted from \texttt{ConceptNet 5.7} \cite{conceptnet}.
+From the whole dataset of $3.1$ million assertions, we filtered tuples with the following aspects:
+1) both concepts are in english, 2) both concepts are single words, and 3) the relation is not deprecated and is not \texttt{/r/ExternalURL}.
+
+Five relationships (in Table \ref{relprops}) were selected for their different properties and because they were
+larger than 7000 triplets after the initial filtering. For example, Antonym relation
+is symmetric; while IsA relation is transitive, it also shows its ``tree-like'' structure since
+the B nodes (parents in this case) have more connections on average than children (A nodes) to
+parents.
+
+\begin{table}
+    \center
+	\caption{Relational properties of \texttt{ConceptNet}}
+    \label{relprops}
+	\begin{tabular}{|l|l|l|l|l|l|l|l|}
+		\hline
+		Relation $\bm{A} \to \bm{B}$ & # triplets & # unique A & # unique B  & avg A & avg B \\
+		\hline
+        \texttt{IsA} & 63,184 & 43,548 & 10,812 & 1.45& 5.84\\
+		\hline
+        \texttt{CapableOf} & 874 & 514 & 550 & 1.70 & 1.59 \\
+		\hline
+        \texttt{Causes} & 1,272 & 456 & 768 & 2.79 & 1.65 \\
+		\hline
+        \texttt{UsedFor} & 4,208 & 1,192 & 2,009 & 3.53 & 2.09 \\
+		\hline
+        \texttt{Antonym} & 14,388 & 9,006 & 10,030 & 1.60 & 1.43 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+The baseline is a simple translation that is learned in the same way as the affine transformation:
+an implementation in pytorch with optimizer \texttt{Adam} (default paramenters:
+$\alpha= 0.001$, $\beta =(0.9, 0.999)$ and $\epsilon = 1^{-8}$). It was trained for 2000 epochs of batch gradient
+descent, and a loss function of mean squared error.
+since the transformation can also rotate/skew/scale the original vector it is expected to perform better.
+No hyper-parameter was tuned. The size of the translation vector is the same as the embedding dimension $d$,
+and the shape of transformation matrix is $(d,d)$.
+All tests were done against \emph{gensim's} \texttt{glove-wiki-gigaword-200} word embeddings.
+For each relation, deterministically $15\%$ of the dataset was for testing and the rest was for training.
+Only
+
+\subsection{Results}
+
+Table \ref{evals} presents the results of testing the model against every relationship,
+with only translation (model of equation 2) and with an affine transformation (model of equation 3).
+model 3 consistently performs better than model 2 (17\%-43\% relative improvement),
+while still being pretty simple (no activation nor hidden layers).
+This hints that the word embedding do capture to some extent this complex(not 1-to-1)
+semantic relationships almost linearly, it also suggests that preffering a matrix multiplication
+over a simple vector difference might yield better results for other tasks with embeddings,
+as a tradeoff, now that matrix needs to be searched.
+
+\begin{table}
+    \center
+	\caption{
+    F1 Scores of the prediction task, for model with only translation and with affine transformation.
+    \texttt{glove-wiki-gigaword-200}
+    }
+    \label{evals}
+    \begin{tabular}{|l|l|l|l|l|}
+        \hline
+        Relation & model \eqref{eq:2} & model \eqref{eq:3} & absolute / relative difference \\ \hline
+        IsA & 0.333 & \textbf{0.403} & 0.07 / 17.37\%
+        \\ \hline
+        CapableOf & 0.236 & \textbf{0.338} & 0.102 / 30.18\%
+        \\ \hline
+        Causes & 0.313 & \textbf{0.368} & 0.055 / 14.95\%
+        \\ \hline
+        UsedFor & 0.245 & \textbf{0.434} & 0.189 / 43.55\%
+        \\ \hline
+        Antonym & 0.421 & \textbf{0.507} & 0.086 / 16.96\%
+        \\ \hline
+        \end{tabular}
+\end{table}
+
+\section{Summary}
+This project proposes a new method to represent semantic relations as an affine transformation
+over word embeddings.
+I learned about different word embeddings, their nuances and properties, how they are trained.
+I also got familiar with ConceptNet and how to manipulate for preprocessing using unix and python
+scripts.
+If time were aplently, I would extend this work to also cover different embeddings beyond
+GloVe 200. Other directions of work is multi-word concepts that are abundant in ConceptNet
+which represent the challenge of extending the embeddings to also handle those,
+finally it would be interesting to model relations of multiple arguments,
+e.g. $and(``water, ``cold'') \to ``ice''$ and other types of reasoning beyond single aasertions.
+As a possible application, this lightweight transformations can be use as an inference step
+of much larger models.
+
+\subsection{Difference from proposal}
+
+Because of the unconvential approach there was high uncertainty on whether there
+was in fact affine transformations in the embeddings or not and if they were learnable,
+the loss function changed but the core formulation of the task stayed the same.
+Learning a representation for each relation turned out to be a field with a lot or
+possible experiments so the focus was turned exclusively on that and dropped the secondary
+proposed subtask of infering chains of relations for \texttt{CommonSenseQA}.
+The proposal also included a section of running the relation against
+unincluded concepts to propose new edges, while this was observed informally during development
+there was no formal experimentation in that direction.
+
+
+\section{Team member contribution}
+Sadly my original team member Dan Luo had to drop the class for personal reasons so
+I did the whole report, algorithm implementation, model testing and output evaluation by myself.
+She was really important during the development of the idea and did half of the job
+when writing the project proposal.

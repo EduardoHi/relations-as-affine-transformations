@@ -1,0 +1,92 @@
+\documentclass[paragraphspacing, palatinofont]{nsfprop}
+
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{amsmath,amssymb}
+\usepackage{amsmath}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{cases}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage{tabularx}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{csquotes}
+\usepackage{wrapfig}
+\usepackage{pgfgantt}
+\usepackage{color,hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+%% \usepackage{subfig}
+\tcbuselibrary{skins,breakable,xparse,raster}
+
+\usepackage{bm}
+
+
+\newcommand{\pk}[1]{{\textcolor{red}{~(PK: #1)}}}
+\usepackage[compact]{titlesec}
+\titlespacing{\section}{0pt}{2ex}{1ex}
+\titlespacing{\subsection}{0pt}{1ex}{0ex}
+\titlespacing{\subsubsection}{0pt}{0.5ex}{0ex}
+
+\newcommand{\ignore}[1]{}
+\newcommand{\danr}[1]{\textcolor{red}{[DR: #1]}}
+\newcommand{\danrchange}[1]{{\color{red} {#1}}}
+
+\newcommand{\dang}[1]{\textcolor{blue}{[DG: #1]}}
+\newcommand{\dangchange}[1]{{\color{blue} {#1}}}
+
+\DeclareMathOperator*{\argmax}{argmax\:}
+\newcommand{\x}{\boldsymbol{x}}
+\newcommand{\y}{\boldsymbol{y}}
+\newcommand{\z}{\boldsymbol{z}}
+\newcommand{\w}{\boldsymbol{w}}
+\newcommand{\ang}[1]{\left\langle #1 \right\rangle}
+
+\titleformat{\subsubsection}[runin]{\normalfont\bfseries}{\thesubsubsection}{0.5em}{}
+
+\newcommand{\todo}[1] {\textcolor{blue}{\em TODO: #1}}
+
+
+
+\begin{document}
+
+
+%\maketitle
+%\pagebreak
+
+%\newpage
+%------------------------------------------
+\section*{Final Project Submission \textit{Relations as Affine Transformations in Word Embeddings}}
+
+\textbf{Submitted by:~} \textit{Eduardo Salvador Hidalgo Vargas}
+\addcontentsline{toc}{section}{Project Summary}
+%\pagestyle{empty}
+%\pagenumbering{roman}
+
+\input{report.tex} %\newpage\setcounter{page}{1}
+
+% \input{introduction}
+% \input{results}
+% %\input{background}\newpage
+% \input{technical}
+% \input{technicalText.tex}
+% \input{technicalSources.tex}
+% \input{technicalJoint.tex}
+% \input{applications}
+% \input{outreach}
+% \input{plan}
+% %\input{team}
+
+%% \pagebreak
+
+
+%------------------------------------------
+%\bibliographystyle{alpha}
+\bibliographystyle{abbrv}
+\bibliography{references}
+%
+
+\end{document}

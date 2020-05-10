@@ -1,0 +1,59 @@
+\begin{thebibliography}{10}
+
+\bibitem{transE}
+A.~Bordes, N.~Usunier, A.~Garcia-Duran, J.~Weston, and O.~Yakhnenko.
+\newblock Translating embeddings for modeling multi-relational data.
+\newblock In C.~J.~C. Burges, L.~Bottou, M.~Welling, Z.~Ghahramani, and K.~Q.
+  Weinberger, editors, {\em Advances in Neural Information Processing Systems
+  26}, pages 2787--2795. Curran Associates, Inc., 2013.
+
+\bibitem{retrofitting}
+M.~Faruqui, J.~Dodge, S.~K. Jauhar, C.~Dyer, E.~H. Hovy, and N.~A. Smith.
+\newblock Retrofitting word vectors to semantic lexicons.
+\newblock {\em CoRR}, abs/1411.4166, 2014.
+
+\bibitem{levy2014linguistic}
+O.~Levy and Y.~Goldberg.
+\newblock Linguistic regularities in sparse and explicit word representations.
+\newblock In {\em Proceedings of the eighteenth conference on computational
+  natural language learning}, pages 171--180, 2014.
+
+\bibitem{mikolov2013efficient}
+T.~Mikolov, K.~Chen, G.~Corrado, and J.~Dean.
+\newblock Efficient estimation of word representations in vector space.
+\newblock {\em arXiv preprint arXiv:1301.3781}, 2013.
+
+\bibitem{mikolov2013linguistic}
+T.~Mikolov, W.-t. Yih, and G.~Zweig.
+\newblock Linguistic regularities in continuous space word representations.
+\newblock In {\em Proceedings of the 2013 conference of the north american
+  chapter of the association for computational linguistics: Human language
+  technologies}, pages 746--751, 2013.
+
+\bibitem{nayak2015learning}
+N.~Nayak.
+\newblock In learning hyperonyms over word embeddings.
+
+\bibitem{pennington2014glove}
+J.~Pennington, R.~Socher, and C.~D. Manning.
+\newblock Glove: Global vectors for word representation.
+\newblock In {\em Proceedings of the 2014 conference on empirical methods in
+  natural language processing (EMNLP)}, pages 1532--1543, 2014.
+
+\bibitem{conceptnet}
+R.~Speer, J.~Chin, and C.~Havasi.
+\newblock Conceptnet 5.5: An open multilingual graph of general knowledge.
+\newblock {\em CoRR}, abs/1612.03975, 2016.
+
+\bibitem{numberBatch}
+R.~Speer and J.~Lowry{-}Duda.
+\newblock Conceptnet at semeval-2017 task 2: Extending word embeddings with
+  multilingual relational knowledge.
+\newblock {\em CoRR}, abs/1704.03560, 2017.
+
+\bibitem{transH}
+Z.~Wang, J.~Zhang, J.~Feng, and Z.~Chen.
+\newblock Knowledge graph embedding by translating on hyperplanes.
+\newblock In {\em AAAI}, pages 1112--1119, 2014.
+
+\end{thebibliography}
