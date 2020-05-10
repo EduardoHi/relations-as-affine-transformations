@@ -75,9 +75,7 @@ class Relation:
         self.name = name
         self.pairs = pairs
 
-    def arity_stats(self):
-        """ returns the max number of edges from head to tail and from tail to head"""
-        # """ returns either "1-1", "1-M", "N-1", "N-M" """
+    def stats(self):
         l = dict()
         r = dict()
 
@@ -94,25 +92,25 @@ class Relation:
         lmax = max(l.values())
         rmax = max(r.values())
 
-        # print("right to left")
         mkr = ""
         for k in r:
-            # print(k, r[k])
             mkr = k if r[k] == rmax else mkr
 
-        print("left to right")
         mkl = ""
         for k in l:
-            print(k, l[k])
             mkl = k if l[k] == lmax else mkl
 
-        print("max")
-        print(mkl, "-> _", lmax)
-        print(rmax, "_ <-", mkr)
+        print("size", len(self.pairs), file=sys.stderr)
+        print("unique As", len(set(x for x, _ in self.pairs)), file=sys.stderr)
+        print("unique Bs", len(set(x for _, x in self.pairs)), file=sys.stderr)
+
+        print("max", file=sys.stderr)
+        print(mkl, "-> _", lmax, file=sys.stderr)
+        print(rmax, "_ ->", mkr, file=sys.stderr)
 
         lavg = sum(l.values()) / len(l.values())
         ravg = sum(r.values()) / len(r.values())
-        print("avg", lavg, ravg)
+        print("avg", lavg, ravg, file=sys.stderr)
 
     def relation_to_csv(self):
         with sys.stdout as csv_file:
@@ -137,7 +135,7 @@ def triplets_to_relation(triplets):
 if __name__ == "__main__":
     triplets = gen_triplets()
     r = triplets_to_relation(triplets)
-    # r.arity_stats()
+    r.stats()
     r.relation_to_csv()
 
     # triplets = filter_uninteresting_relations(triplets)

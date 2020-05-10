@@ -48,16 +48,18 @@ def w2vec(word_vecs, w):
 
 
 class Model:
-    def __init__(self, word_vecs):
+    def __init__(self, word_vecs, translation=False):
         self.wv = word_vecs
+        self.translation = translation
 
-        # self.trans = torch.rand(200, requires_grad=True)
-        # self.forward = lambda x: x + self.trans
-        self.model = nn.Sequential(
-            # Linear Transformation + bias is equivalent to an Affine Transformation
-            nn.Linear(200, 200)
-        )
-        self.forward = self.model.forward
+        if translation:
+            self.trans = torch.rand(200, requires_grad=True)
+            self.model = lambda x: x + self.trans
+        else:
+            self.model = nn.Sequential(
+                # Linear Transformation + bias is equivalent to an Affine Transformation
+                nn.Linear(200, 200),
+            )
 
     def train(self, words_train_set):
 
@@ -69,55 +71,81 @@ class Model:
         tails = embeddings_train_set[:, 1]
         losses = []
 
-        opt = optim.Adam(self.model.parameters())
-        # criterion = torch.nn.L1Loss()
-        criterion = torch.nn.MSELoss()
-        # criterion = torch.nn.CosineEmbeddingLoss()
+        if self.translation:
+            opt = optim.Adam([self.trans])
+        else:
+            opt = optim.Adam(self.model.parameters())
 
-        for _epoch in range(5000):
+        criterion = torch.nn.MSELoss()
+
+        for _epoch in range(2000):
             # a single epoch
             opt.zero_grad()
 
-            y_hat = self.forward(heads)
+            y_hat = self.model(heads)
             # (3) Compute gradients
             loss = criterion(tails, y_hat)  # , torch.ones(tail.shape[0]))
             loss.backward()
             # (4) update weights
             opt.step()
             losses.append(loss.data.cpu().item())
-
-        # self.trans = self.trans.detach()
-        # torch.save(self.trans, "trans.pt")
-
-        plt.plot(losses)
-
         return losses
 
     def predict(self, head_words):
         head_embeddings = torch.tensor([w2vec(self.wv, h) for h in head_words])
         tail_words = []
-        predicted_tes = self.forward(head_embeddings).detach()
+        predicted_tes = self.model(head_embeddings).detach()
         for te in predicted_tes:
             predicted_tails = [
-                w for (w, _score) in self.wv.similar_by_vector(te.numpy())
+                w for (w, _score) in self.wv.similar_by_vector(te.numpy(), topn=20)
             ]
             tail_words.append(predicted_tails)
         return tail_words
 
-    def test_predict(self, words_dataset):
-        # a little help, it's correct if it is in the top-10 similar vectors
+    def test_precision_predict(self, words_dataset):
+        # return the true tail word if it is near the predicted word
         hws = words_dataset[:, 0]
         tws = words_dataset[:, 1]
         predictions = self.predict(hws)
 
-        def f(pair):
-            tws_hat, true_tw = pair
-            if true_tw in tws_hat:
-                return true_tw
+        res = []
+        for near_predictions, tt in zip(predictions, tws):
+            if tt in near_predictions:
+                res.append(tt)
             else:
-                return tws_hat[0]
+                res.append(near_predictions[0])
+        return res
 
-        return list(map(f, zip(predictions, tws)))
+    def test_precision_truth(self, words_dataset):
+        hws = words_dataset[:, 0]
+        tws = words_dataset[:, 1]
+        predictions = self.predict(hws)
+        exact_predictions = [ps[0] for ps in predictions]
+
+        res = []
+        for exact_prediction, tt in zip(exact_predictions, tws):
+            near_true = [w for (w, _score) in self.wv.most_similar(tt, topn=20)]
+            if exact_prediction in near_true:
+                res.append(tt)
+            else:
+                res.append(exact_prediction)
+        return res
+
+    def test_precision_both(self, words_dataset):
+        # return tail if the the set of words near tail is not disjoint with
+        # set of words near predicted tail
+        hws = words_dataset[:, 0]
+        tws = words_dataset[:, 1]
+        predictions = self.predict(hws)
+
+        res = []
+        for near_predicted, tt in zip(predictions, tws):
+            near_true = [w for (w, _score) in self.wv.most_similar(tt, topn=20)]
+            if set(near_predicted).isdisjoint(set(near_true)):
+                res.append(near_predicted[0])
+            else:
+                res.append(tt)
+        return res
 
 
 def visualize_tsne(words_strs, words_vecs):
@@ -163,67 +191,103 @@ def visualize_tsne(words_strs, words_vecs):
     annotate_words(t_words_strs, t_2d)
 
 
+def inverse(data):
+    l = data[:, 0]
+    r = data[:, 1]
+    return np.array([r, l]).T
+
+
+def run(data_file, word_vecs, translation=False, inverse=False):
+    words_dataset = np.array(read_data(filename=data_file))
+
+    words_dataset = np.array(
+        [[h, t] for [h, t] in words_dataset if h in word_vecs and t in word_vecs]
+    )
+
+    if inverse:
+        words_dataset = inverse(words_dataset)
+
+    words_train, words_test = train_test_split(
+        words_dataset, test_size=0.15, random_state=42,
+    )
+
+    relModel = Model(word_vecs, translation)
+    relModel.train(words_train)
+
+    word_predicted = relModel.test_precision_both(words_test)
+    word_ground_truth = [tw for _hw, tw in words_test]
+
+    precision, recall, fscore, _support = precision_recall_fscore_support(
+        word_ground_truth, word_predicted, average="micro"
+    )
+
+    # for truth, pred in zip(words_test[:40], word_predicted[:40]):
+    for truth, pred in zip(words_test, word_predicted):
+        print(truth, pred)
+
+    print("data_file:", data_file)
+    print("translation:", translation)
+    print("inverse:", inverse)
+    print("precision: ", precision)
+    print("recall: ", recall)
+    print("fscore: ", fscore)
+    print()
+
+
+def runall(word_vecs):
+    run("data/simple_IsA.pairs.csv", word_vecs, True, False)
+    run("data/simple_IsA.pairs.csv", word_vecs, False, False)
+
+    run("data/simple_CapableOf.pairs.csv", word_vecs, True, False)
+    run("data/simple_CapableOf.pairs.csv", word_vecs, False, False)
+
+    run("data/simple_Causes.pairs.csv", word_vecs, True, False)
+    run("data/simple_Causes.pairs.csv", word_vecs, False, False)
+
+    run("data/simple_UsedFor.pairs.csv", word_vecs, True, False)
+    run("data/simple_UsedFor.pairs.csv", word_vecs, False, False)
+
+    run("data/simple_Antonym.pairs.csv", word_vecs, False, False)
+    run("data/simple_Antonym.pairs.csv", word_vecs, False, False)
+
+
 def main():
 
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--runall", type=bool, default=False, help="runs all experiments",
+    )
+
     parser.add_argument(
         "--data_file",
         type=str,
         default="data/simple_CapableOf.pairs.csv",
         help="Dataset file",
     )
+
     parser.add_argument(
-        "--vecs_file",
-        type=str,
-        default="data/CapableOf.vecs.pt",
-        help="word vectors file",
+        "--inverse",
+        type=bool,
+        default=False,
+        help="train for the inverse of the given relation",
     )
+
     parser.add_argument(
-        "--epochs", type=int, default=2000,
+        "--translation",
+        type=bool,
+        default=False,
+        help="if the model is just a translation. if false, then model is an affine transformation",
     )
     args = parser.parse_args()
-
-    words_dataset = np.array(read_data(filename=args.data_file))
 
     word_vecs = api.load("glove-wiki-gigaword-200")
     word_vecs.init_sims()
 
-    # embeddings_dataset = torch.tensor(
-    #     list([w2vec(word_vecs, h), w2vec(word_vecs, t)] for [h, t] in words_dataset)
-    # )
+    if args.runall:
+        runall(word_vecs)
+    else:
+        run(args.data_file, word_vecs, args.translation, args.inverse)
 
-    # (M , 2, 200)
-    # M is number of samples, 2 since it's a pair, and 200 the dimensions of the embeddings
-
-    # print("loaded data and wordvecs", datetime.now().time(), file=sys.stderr)
-
-    relModel = Model(word_vecs)
-    relModel.train(words_dataset)
-
-    # words_train, words_test, embeds_train, embeds_test = train_test_split(
-    #     words_dataset, embeddings_dataset.numpy(), test_size=0.20, random_state=42,
-    # )
-
-    # trans, losses = train(torch.tensor(embeds_train), words_train, word_vecs)
-
-    # print("finished training", datetime.now().time(), file=sys.stderr)
-
-    # predict against the whole dataset, not train and test splits
-    word_predicted = relModel.test_predict(words_dataset)
-    word_ground_truth = [tw for _hw, tw in words_dataset]
-
-    precision, recall, fscore, _support = precision_recall_fscore_support(
-        word_ground_truth, word_predicted, average="micro"
-    )
-
-    for truth, pred in zip(word_ground_truth, word_predicted):
-        print(truth, pred)
-
-    print("precision: ", precision)
-    print("recall: ", recall)
-    print("fscore: ", fscore)
-
-    # visualize_tsne(words_test, embeds_test)
     plt.show()
 
 

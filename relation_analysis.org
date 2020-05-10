@@ -37,6 +37,8 @@
 | /r/Synonym                   | Symmetric  |              |
 | /r/UsedFor                   |            |              |
 
+from simple data:
+
 1624224 /r/RelatedTo
  367962 /r/FormOf
  314191 /r/DerivedFrom
